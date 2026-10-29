@@ -68,8 +68,6 @@ export type Certificate = { title: string; issuer: string; url: string };
 
 export const certificates: Certificate[] = content.certificates;
 
-export const WEB3FORMS_ACCESS_KEY = "7bb7e3c8-13c0-4f0d-8182-f70c06e5fd18";
-
 export type LanguageStat = { name: string; count: number; pct: number };
 
 export const staticSnapshot = {

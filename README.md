@@ -7,7 +7,7 @@ Website portofolio pribadi saya sebagai **Backend Engineer (Java & Spring Boot)*
 - Profil, tentang saya, tech stack, proyek unggulan, dan sertifikat
 - Statistik GitHub live (dengan data cadangan bila API gagal)
 - Dwibahasa (Indonesia / English) dan tema terang / gelap
-- Form kontak via Web3Forms (fallback ke `mailto`)
+- Form kontak email langsung (`mailto`)
 
 ## Menjalankan
 

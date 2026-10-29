@@ -1,24 +1,15 @@
 import { useState, type FormEvent } from "react";
-import { profile, company, WEB3FORMS_ACCESS_KEY } from "../data/profile";
+import { profile, company } from "../data/profile";
 import { useLang } from "../i18n/languageContext";
 import SectionTitle from "./SectionTitle";
 import SocialLinks from "./SocialLinks";
 
-type Status = "idle" | "sending" | "success" | "error";
-
 export default function Contact() {
   const { t } = useLang();
-  const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [mailtoUrl, setMailtoUrl] = useState("");
 
-  const sendViaMailto = (name: string, email: string, message: string) => {
-    const subject = encodeURIComponent(`Pesan dari ${name} (via web profil)`);
-    const body = encodeURIComponent(`${message}\n\n— ${name} <${email}>`);
-    window.location.href = `mailto:${profile.email}?subject=${subject}&body=${body}`;
-    setStatus("success");
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
@@ -27,38 +18,13 @@ export default function Contact() {
     const message = String(data.get("message") || "").trim();
     if (!name || !email || !message) return;
 
-    if (!WEB3FORMS_ACCESS_KEY) {
-      sendViaMailto(name, email, message);
-      form.reset();
-      return;
-    }
+    const subject = encodeURIComponent(t.contact.subjectTemplate(name));
+    const body = encodeURIComponent(`${message}\n\n— ${name} <${email}>`);
+    const url = `mailto:${profile.email}?subject=${subject}&body=${body}`;
 
-    setStatus("sending");
-    setError("");
-    try {
-      const res = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_ACCESS_KEY,
-          subject: `Pesan dari ${name} (web profil)`,
-          from_name: name,
-          name,
-          email,
-          message,
-        }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        setStatus("success");
-        form.reset();
-      } else {
-        throw new Error(json.message || "error");
-      }
-    } catch (err) {
-      setError((err as Error).message);
-      setStatus("error");
-    }
+    setMailtoUrl(url);
+    setSubmitted(true);
+    window.location.href = url;
   };
 
   const fieldCls =
@@ -139,25 +105,32 @@ export default function Contact() {
 
           <button
             type="submit"
-            disabled={status === "sending"}
-            className="mt-8 w-full bg-bone px-6 py-3 font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-ink transition-opacity hover:opacity-85 disabled:opacity-50"
+            className="mt-8 w-full bg-bone px-6 py-3 font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-ink transition-opacity hover:opacity-85"
           >
-            {status === "sending" ? t.contact.sending : t.contact.send}
+            {t.contact.send}
           </button>
 
-          <p className="m-0 mt-4 min-h-5 text-[0.8125rem] text-ash" aria-live="polite">
-            {status === "success" &&
-              (WEB3FORMS_ACCESS_KEY ? t.contact.successSent : t.contact.successMailto)}
-            {status === "error" && (
-              <span className="text-alert">
-                {t.contact.errorPrefix} ({error}).{" "}
-                <a href={`mailto:${profile.email}`} className="underline underline-offset-2">
-                  {t.contact.emailDirect}
-                </a>
-                .
-              </span>
-            )}
+          <p className="m-0 mt-3 text-[0.75rem] leading-relaxed text-ash">
+            {t.contact.hint}
           </p>
+
+          {submitted && (
+            <div className="mt-4 border-t border-rule pt-4 text-[0.8125rem]" aria-live="polite">
+              <p className="m-0 leading-relaxed text-bone">
+                {t.contact.successMailto}
+              </p>
+              {mailtoUrl && (
+                <p className="m-0 mt-2">
+                  <a
+                    href={mailtoUrl}
+                    className="text-brass underline underline-offset-2 transition-opacity hover:opacity-80"
+                  >
+                    {t.contact.openManual}
+                  </a>
+                </p>
+              )}
+            </div>
+          )}
         </form>
       </div>
     </section>
